@@ -1,7 +1,9 @@
-# CIS 410/510pm
+# CIS 573
 # Homework #4
-# Daniel Lowd
+# Connor George
 # April 2017
+#
+# This code was adapted from the provided starter code.
 #
 # TEMPLATE CODE
 import sys
