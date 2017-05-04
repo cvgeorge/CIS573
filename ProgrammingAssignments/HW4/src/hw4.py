@@ -1,4 +1,4 @@
-# CIS 410/510pm
+# CIS 553 - Probabalistic Methods in AI
 # Homework #4
 # Connor George
 # May 2017
@@ -22,8 +22,6 @@ var_log = True
 #
 # FACTOR CLASS -- EDIT HERE!
 #
-
-def union_mag(factor1, factor2):
 
 
 class Factor(dict):
@@ -171,4 +169,3 @@ if __name__ == "__main__":
     z = sum(f.vals)
     print "Z = ",z
 
-print("asdf")
