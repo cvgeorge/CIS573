@@ -23,16 +23,22 @@ var_log = True
 # FACTOR CLASS -- EDIT HERE!
 #
 
+def union_mag(factor1, factor2):
+
+
 class Factor(dict):
     def __init__(self, scope_, vals_):
         self.scope = scope_
         self.vals = vals_
         # TODO -- ADD EXTRA INITIALIZATION CODE IF NEEDED
 
+
     def __mul__(self, other):
         """Returns a new factor representing the product."""
         # TODO -- PUT YOUR MULTIPLICATION CODE HERE!
-        # BEGIN PLACEHOLDER CODE -- DELETE THIS! 
+        # BEGIN PLACEHOLDER CODE -- DELETE THIS!
+        j = 0
+        k = 0
         new_scope = self.scope
         new_vals  = self.vals
         # END PLACEHOLDER CODE
@@ -71,7 +77,7 @@ def read_tokens():
     global token_buf
     for line in sys.stdin:
         token_buf.extend(line.strip().split())
-    #print "Num tokens:",len(token_buf)
+    var_logging("Num tokens:" + str(len(token_buf)))
 
 def next_token():
     global curr_token
@@ -85,6 +91,26 @@ def next_int():
 def next_float():
     return float(next_token())
 
+# Preamble clarification:
+#
+# MARKOV     -- Type of network
+# 3          -- There are 3 variables (nodes) in the network, x_0, x_1, and x_2
+# 2 2 3      -- The first and second variables are binary (0, 1).  The third variable is trinary (0, 1, 2)
+# 2          -- There are 2 cliques in the network
+# 2 0 1      -- There are 2 variables in this clique, they are x_0 and x_1
+# 2 1 2      -- There are 2 variables in this clique, they are x_1 and x_2
+#
+#
+# Function table clarification:
+#
+#
+#
+#
+#
+#
+
+
+
 def read_model():
     # Read in all tokens and throw away the first (expected to be "MARKOV")
     var_logging("Reading tokens")
@@ -97,13 +123,13 @@ def read_model():
     var_logging("Number of variables is: " + str(num_vars))
     global var_ranges;
     var_ranges = [next_int() for i in range(num_vars)]
-    var_logging("Variable ranges calculated")
+    var_logging("Variable ranges/cardinalities calculated")  # Example: If the variable range is 2, it is a binary variable
 
     # Get number and scopes of factors 
     num_factors = int(next_token())
-    var_logging("Number of factors is: " + str(num_factors))
+    var_logging("Number of factors is: " + str(num_factors)) # This is how many tables we will read in as well
 
-    factor_scopes = []
+    factor_scopes = []                                       # A factor scope simply refers to the variables present in the factor
     for i in range(num_factors):
         scope = [next_int() for i in range(next_int())]
         # NOTE: 
@@ -118,7 +144,7 @@ def read_model():
 
     # Read in all factor values
     factor_vals = []
-    for i in range(num_factors):
+    for i in range(num_factors):                             # Factor values are the values in the table
         factor_vals.append([next_float() for i in range(next_int())])
 
     var_logging("Factor values read")
@@ -129,7 +155,7 @@ def read_model():
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
     var_logging("File read!")
-    return [Factor(s,v) for (s,v) in zip(factor_scopes,factor_vals)]
+    return [Factor(s,v) for (s,v) in zip(factor_scopes,factor_vals)] # We return a list of tuples in the form (factor_scopes, factor_values)
 
 
 #
