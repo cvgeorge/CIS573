@@ -16,6 +16,7 @@ import itertools
 # ranges directly without reading in a full model file, so please keep it
 # here and use it when you need variable ranges!
 var_ranges = []
+var_log = True
 
 
 #
@@ -62,6 +63,10 @@ class Factor(dict):
 curr_token = 0
 token_buf = []
 
+def var_logging(to_print):
+    if var_log == True:
+        print(to_print)
+
 def read_tokens():
     global token_buf
     for line in sys.stdin:
@@ -82,16 +87,22 @@ def next_float():
 
 def read_model():
     # Read in all tokens and throw away the first (expected to be "MARKOV")
+    var_logging("Reading tokens")
     read_tokens()
+    var_logging("Tokens read")
     s = next_token()
 
     # Get number of vars, followed by their ranges
     num_vars = next_int()
+    var_logging("Number of variables is: " + str(num_vars))
     global var_ranges;
     var_ranges = [next_int() for i in range(num_vars)]
+    var_logging("Variable ranges calculated")
 
     # Get number and scopes of factors 
     num_factors = int(next_token())
+    var_logging("Number of factors is: " + str(num_factors))
+
     factor_scopes = []
     for i in range(num_factors):
         scope = [next_int() for i in range(next_int())]
@@ -103,16 +114,21 @@ def read_model():
         scope.reverse()
         factor_scopes.append(scope)
 
+    var_logging("Factors aligned with K&F standard")
+
     # Read in all factor values
     factor_vals = []
     for i in range(num_factors):
         factor_vals.append([next_float() for i in range(next_int())])
+
+    var_logging("Factor values read")
 
     # DEBUG
     #print "Num vars: ",num_vars
     #print "Ranges: ",var_ranges
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
+    var_logging("File read!")
     return [Factor(s,v) for (s,v) in zip(factor_scopes,factor_vals)]
 
 
@@ -121,8 +137,12 @@ def read_model():
 #
 
 if __name__ == "__main__":
+    var_logging("Beginning program")
     factors = read_model()
     # Compute Z by brute force
+    var_logging("Factors read...")
     f = reduce(Factor.__mul__, factors)
     z = sum(f.vals)
     print "Z = ",z
+
+print("asdf")
