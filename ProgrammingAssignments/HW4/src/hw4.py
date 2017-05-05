@@ -23,11 +23,20 @@ var_log = True
 # FACTOR CLASS -- EDIT HERE!
 #
 
+def union(list1, list2):
+    new_list = list1
+    for item in list2:
+        if item not in list2:
+            new_list.append(item)
+    return new_list
 
 class Factor(dict):
-    def __init__(self, scope_, vals_):
+    def __init__(self, scope_, vals_, strides_, ranges_):
+        # Example scope: [1, 3, 4]     -- This indicates a factor over the variables x_1, x_3, and x_4
         self.scope = scope_
         self.vals = vals_
+        self.strides = strides_
+        self.ranges = ranges_
         # TODO -- ADD EXTRA INITIALIZATION CODE IF NEEDED
 
 
@@ -35,12 +44,36 @@ class Factor(dict):
         """Returns a new factor representing the product."""
         # TODO -- PUT YOUR MULTIPLICATION CODE HERE!
         # BEGIN PLACEHOLDER CODE -- DELETE THIS!
+
+        var_logging("Scopes: " + str(self.ranges))
+        var_logging("Ranges: " + str(self.ranges))
+        var_logging("Values: " + str(self.ranges))
+        var_logging("Strides: " + str(self.ranges))
+        var_logging("\n")
+
+
+
+
         j = 0
         k = 0
+
+        assignments = []
+
+        for l in range(len(union(self.scope, other.scope))):
+            assignments.append(0)
+
+        # for i = 0 ...  |Val(X_1 U X_2)| - 1
+        # this loop means to loop through all the values of the X_1 variables
+        # in the table and all the values of the X_2 variables in the table
+        # For example, if X_1 is binary, and X_2 is binary, then |Val(X_1 U X_2)| should be 4
+
         new_scope = self.scope
         new_vals  = self.vals
+        new_strides = self.strides
+        new_ranges = self.ranges
         # END PLACEHOLDER CODE
-        return Factor(new_scope, new_vals)
+
+        return Factor(new_scope, new_vals, new_strides, new_ranges)
 
     def __rmul__(self, other):
         return self * other
@@ -138,7 +171,26 @@ def read_model():
         scope.reverse()
         factor_scopes.append(scope)
 
+    stride_list = []
+    print factor_scopes
+    for index in range(len(factor_scopes)):
+        factor_strides = {}
+        for factor_index in range(len(factor_scopes[index])):
+            if factor_index == 0:
+                factor_strides[factor_scopes[index][0]] = 1 # First stride is always 1
+            else:
+                prod = 1
+                for i in range(0, factor_index):
+                    prod *= var_ranges[factor_scopes[index][i]]
+                factor_strides[factor_scopes[index][factor_index]] = prod
+        stride_list.append(factor_strides)
+
+    print stride_list
+
+    var_logging("Factor strides calculated..... but this code hasn't been tested yet")
+
     var_logging("Factors aligned with K&F standard")
+
 
     # Read in all factor values
     factor_vals = []
@@ -153,7 +205,7 @@ def read_model():
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
     var_logging("File read!")
-    return [Factor(s,v) for (s,v) in zip(factor_scopes,factor_vals)] # We return a list of tuples in the form (factor_scopes, factor_values)
+    return [Factor(s,v, stride, ranges) for (s,v, stride, ranges) in zip(factor_scopes,factor_vals, stride_list, var_ranges)] # We return a list of factors
 
 
 #
