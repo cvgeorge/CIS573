@@ -15,7 +15,8 @@ import itertools
 # However, the autograder code currently uses it to set the variable 
 # ranges directly without reading in a full model file, so please keep it
 # here and use it when you need variable ranges!
-var_ranges = []
+#var_ranges = []  UNCOMMENT THIS WHEN DONE DEBUGGING
+var_ranges = [2, 2, 2, 2]
 var_log = True
 
 
@@ -26,17 +27,16 @@ var_log = True
 def union(list1, list2):
     new_list = list1
     for item in list2:
-        if item not in list2:
+        if item not in new_list:
             new_list.append(item)
     return new_list
 
 class Factor(dict):
-    def __init__(self, scope_, vals_, strides_, ranges_):
+    def __init__(self, scope_, vals_, strides_):
         # Example scope: [1, 3, 4]     -- This indicates a factor over the variables x_1, x_3, and x_4
         self.scope = scope_
         self.vals = vals_
         self.strides = strides_
-        self.ranges = ranges_
         # TODO -- ADD EXTRA INITIALIZATION CODE IF NEEDED
 
 
@@ -44,11 +44,14 @@ class Factor(dict):
         """Returns a new factor representing the product."""
         # TODO -- PUT YOUR MULTIPLICATION CODE HERE!
         # BEGIN PLACEHOLDER CODE -- DELETE THIS!
-
-        var_logging("Scopes: " + str(self.ranges))
-        var_logging("Ranges: " + str(self.ranges))
-        var_logging("Values: " + str(self.ranges))
-        var_logging("Strides: " + str(self.ranges))
+        var_logging("---------------------------------")
+        var_logging("Scopes: " + str(self.scope))
+        var_logging("Values: " + str(self.vals))
+        var_logging("Strides: " + str(self.strides))
+        var_logging("\n")
+        var_logging("Other Scopes: " + str(other.scope))
+        var_logging("Other Values: " + str(other.vals))
+        var_logging("Other Strides: " + str(other.strides))
         var_logging("\n")
 
 
@@ -58,22 +61,73 @@ class Factor(dict):
         k = 0
 
         assignments = []
-
-        for l in range(len(union(self.scope, other.scope))):
+        unioned_scopes = union(self.scope, other.scope)
+        for l in range(len(unioned_scopes)):
             assignments.append(0)
 
         # for i = 0 ...  |Val(X_1 U X_2)| - 1
         # this loop means to loop through all the values of the X_1 variables
         # in the table and all the values of the X_2 variables in the table
         # For example, if X_1 is binary, and X_2 is binary, then |Val(X_1 U X_2)| should be 4
+        numVals = 1
+
+        for item in unioned_scopes:
+            numVals *= var_ranges[item]
+
+
+        psi = []
+        var_logging("NumVals: " + str(numVals))
+
+        for i in range(numVals - 1):
+
+            var_logging("j: " + str(j))
+            var_logging("k: " + str(k))
+
+            psi.append(self.vals[j] * other.vals[k])
+            var_logging("i is: " + str(i))
+
+            for l in range(len(unioned_scopes)):
+                var_logging("l is: " + str(l))
+                assignments[l] = assignments[l] + 1
+                if assignments[l] == var_ranges[l]:
+                    var_logging("entered if statement")
+                    assignments[l] = 0
+                    j = j - (var_ranges[l] - 1) * self.strides[l]
+                    k = k - (var_ranges[l] - 1) * other.strides[l]
+                else:
+                    var_logging("entered else statement")
+                    j = j + self.strides[l]
+                    k = k + other.strides[l]
+                    break
+
+        print "Psi: " + str(psi)
+
+
+
+        factor_strides = []
+        for factor_index in range(len(unioned_scopes)):
+            if factor_index == 0:
+                factor_strides.append(1)  # First stride is always 1
+            else:
+                prod = 1
+                for i in range(0, factor_index):
+                    prod *= var_ranges[unioned_scopes[i]]
+                factor_strides.append(prod)
+
+
+        var_logging(factor_strides)
+
 
         new_scope = self.scope
         new_vals  = self.vals
         new_strides = self.strides
-        new_ranges = self.ranges
         # END PLACEHOLDER CODE
 
-        return Factor(new_scope, new_vals, new_strides, new_ranges)
+
+
+        var_logging("Unioned Scopes: " + str(unioned_scopes))
+#        return Factor(new_scope, new_vals, new_strides)
+        return Factor(unioned_scopes, psi, factor_strides)
 
     def __rmul__(self, other):
         return self * other
@@ -88,6 +142,7 @@ class Factor(dict):
         itervals = [range(var_ranges[i]) for i in rev_scope]
         for i,x in enumerate(itertools.product(*itervals)):
             val = val + str(x) + " " + str(self.vals[i]) + "\n"
+        val = val + str(self.strides) + "\n"
         return val
 
 
@@ -172,22 +227,22 @@ def read_model():
         factor_scopes.append(scope)
 
     stride_list = []
-    print factor_scopes
+    print "Factor scopes: " + str(factor_scopes)
     for index in range(len(factor_scopes)):
-        factor_strides = {}
+        factor_strides = []
         for factor_index in range(len(factor_scopes[index])):
             if factor_index == 0:
-                factor_strides[factor_scopes[index][0]] = 1 # First stride is always 1
+                factor_strides.append(1) # First stride is always 1
             else:
                 prod = 1
                 for i in range(0, factor_index):
                     prod *= var_ranges[factor_scopes[index][i]]
-                factor_strides[factor_scopes[index][factor_index]] = prod
+                factor_strides.append(prod)
         stride_list.append(factor_strides)
 
     print stride_list
 
-    var_logging("Factor strides calculated..... but this code hasn't been tested yet")
+    var_logging("Factor strides calculated")
 
     var_logging("Factors aligned with K&F standard")
 
@@ -201,11 +256,16 @@ def read_model():
 
     # DEBUG
     #print "Num vars: ",num_vars
-    #print "Ranges: ",var_ranges
+    print "Ranges: ",var_ranges
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
     var_logging("File read!")
-    return [Factor(s,v, stride, ranges) for (s,v, stride, ranges) in zip(factor_scopes,factor_vals, stride_list, var_ranges)] # We return a list of factors
+    print "ZIP:" + str(zip(factor_scopes,factor_vals, stride_list))
+    factor_list = [Factor(s,v, stride) for (s,v, stride) in zip(factor_scopes,factor_vals, stride_list)] # We return a list of factors
+
+    for factor in factor_list:
+        print "Factor: " + str(factor)
+    return factor_list # We return a list of factors
 
 
 #
@@ -214,7 +274,20 @@ def read_model():
 
 if __name__ == "__main__":
     var_logging("Beginning program")
-    factors = read_model()
+    #factors = read_model()             #IMPORTANT! UNCOMMENT THIS WHEN DONE DEBUGGING
+
+    f1 = Factor([0], [1.5, 1.5], [1])
+    f2 = Factor([1, 2], [0.3, 0.7, 2.9, 0.1], [1,2])
+    f3 = Factor([2, 0], [2.8, 1.2, 0.2, 2.8], [1,2])
+    f4 = Factor([3, 2], [1.5, 2.5, 1.1, 0.9], [1,2])
+
+    factors = [f1, f2, f3, f4]
+
+    for factor in factors:
+        print "Factor: " + str(factor)
+    print(len(factors))
+
+
     # Compute Z by brute force
     var_logging("Factors read...")
     f = reduce(Factor.__mul__, factors)
