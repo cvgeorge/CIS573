@@ -60,7 +60,7 @@ class Factor(dict):
         j = 0
         k = 0
 
-        assignments = []
+        assignments = []  # Assignments is a list holding the current assignment of each of the variables.  So [0, 1, 0] means x_0 = false, x_1 = true, x_2 = false
         unioned_scopes = union(self.scope, other.scope)
         for l in range(len(unioned_scopes)):
             assignments.append(0)
