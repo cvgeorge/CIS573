@@ -1,0 +1,5 @@
+t1.uai - Z=54
+t2.uai - Z=34.059
+t3.uai - Z=23.1858
+alarm.uai - Z=41.9525
+tree.uai - Z=18

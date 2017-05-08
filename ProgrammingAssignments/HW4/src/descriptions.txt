@@ -1,0 +1,7 @@
+scope - the random variables that are included in some particular factor
+
+range - number of values some particular random variable can take on.  i.e. binary variables
+
+val - values in the table
+
+stride - indexing tool for the factor array
