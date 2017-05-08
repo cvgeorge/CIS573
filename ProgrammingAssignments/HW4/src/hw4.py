@@ -16,7 +16,7 @@ import itertools
 # ranges directly without reading in a full model file, so please keep it
 # here and use it when you need variable ranges!
 #var_ranges = []  UNCOMMENT THIS WHEN DONE DEBUGGING
-var_ranges = [2, 2, 2, 2, 2]
+var_ranges = []
 var_log = False
 
 
@@ -37,13 +37,10 @@ class Factor(dict):
         self.scope = scope_
         self.vals = vals_
         self.strides = strides_
-        # TODO -- ADD EXTRA INITIALIZATION CODE IF NEEDED
 
 
     def __mul__(self, other):
         """Returns a new factor representing the product."""
-        # TODO -- PUT YOUR MULTIPLICATION CODE HERE!
-        # BEGIN PLACEHOLDER CODE -- DELETE THIS!
         var_logging("---------------------------------")
         var_logging("Scopes: " + str(self.scope))
         var_logging("Values: " + str(self.vals))
@@ -53,9 +50,6 @@ class Factor(dict):
         var_logging("Other Values: " + str(other.vals))
         var_logging("Other Strides: " + str(other.strides))
         var_logging("\n")
-
-
-
 
         j = 0
         k = 0
@@ -112,16 +106,7 @@ class Factor(dict):
             if num not in unioned_scopes:
                 factor_strides[num] = 0
 
-
         var_logging(factor_strides)
-
-
-        new_scope = self.scope
-        new_vals  = self.vals
-        new_strides = self.strides
-        # END PLACEHOLDER CODE
-
-
 
         var_logging("Unioned Scopes: " + str(unioned_scopes))
 #        return Factor(new_scope, new_vals, new_strides)
@@ -183,15 +168,6 @@ def next_float():
 # 2          -- There are 2 cliques in the network
 # 2 0 1      -- There are 2 variables in this clique, they are x_0 and x_1
 # 2 1 2      -- There are 2 variables in this clique, they are x_1 and x_2
-#
-#
-# Function table clarification:
-#
-#
-#
-#
-#
-#
 
 def calc_stride(factor_scope, target):
     prod = 1
@@ -203,8 +179,6 @@ def calc_stride(factor_scope, target):
         if variable == target:
             return prod
         prod *= var_ranges[variable]
-
-
 
 def read_model():
     # Read in all tokens and throw away the first (expected to be "MARKOV")
@@ -302,7 +276,6 @@ if __name__ == "__main__":
     factors = [f1, f2, f3, f4]
     '''
 
-
     '''
     # T2 Network
 
@@ -321,7 +294,6 @@ if __name__ == "__main__":
 
     factors = [f1, f2, f3, f4, f5]
     '''
-
 
     # Compute Z by brute force
     var_logging("Factors read...")
