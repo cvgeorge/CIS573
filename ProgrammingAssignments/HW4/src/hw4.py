@@ -60,10 +60,10 @@ class Factor(dict):
         j = 0
         k = 0
 
-        assignments = []  # Assignments is a list holding the current assignment of each of the variables.  So [0, 1, 0] means x_0 = false, x_1 = true, x_2 = false
+        assignments = {}  # Assignments is a list holding the current assignment of each of the variables.  So [0, 1, 0] means x_0 = false, x_1 = true, x_2 = false
         unioned_scopes = union(self.scope, other.scope)
-        for l in range(len(unioned_scopes)):
-            assignments.append(0)
+        for l in unioned_scopes:
+            assignments[l] = 0
 
         # for i = 0 ...  |Val(X_1 U X_2)| - 1
         # this loop means to loop through all the values of the X_1 variables
@@ -86,7 +86,7 @@ class Factor(dict):
             psi.append(self.vals[j] * other.vals[k])
             var_logging("i is: " + str(i))
 
-            for l in range(len(unioned_scopes)):
+            for l in unioned_scopes:
                 var_logging("l is: " + str(l))
                 assignments[l] = assignments[l] + 1
                 if assignments[l] == var_ranges[l]:
@@ -285,7 +285,7 @@ def read_model():
 
 if __name__ == "__main__":
     var_logging("Beginning program")
-    #factors = read_model()             #IMPORTANT! UNCOMMENT THIS WHEN DONE DEBUGGING
+    factors = read_model()             #IMPORTANT! UNCOMMENT THIS WHEN DONE DEBUGGING
     '''
     # T1 Network
 
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     '''
 
 
-
+    '''
     # T2 Network
 
     f1_strides = {0: 1, 1: 0, 2: 2, 3: 0, 4: 0}
@@ -318,8 +318,9 @@ if __name__ == "__main__":
     f4 = Factor([3, 1, 2], [0.01000000, 0.99000000, 2.25000000, 3.75000000, 0.50000000, 0.50000000, 0.60000000, 0.40000000], f4_strides)
     f5 = Factor([4, 3, 0], [0.01000000, 4.99000000, 0.10000000, 1.90000000, 0.20000000, 0.80000000, 0.50000000, 0.50000000], f5_strides)
 
-    factors = [f1, f2, f3, f4, f5]
 
+    factors = [f1, f2, f3, f4, f5]
+    '''
 
 
     # Compute Z by brute force
