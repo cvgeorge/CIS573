@@ -32,11 +32,21 @@ def union(list1, list2):
     return new_list
 
 class Factor(dict):
-    def __init__(self, scope_, vals_, strides_):
+    def __init__(self, scope_, vals_):
         # Example scope: [1, 3, 4]     -- This indicates a factor over the variables x_1, x_3, and x_4
         self.scope = scope_
         self.vals = vals_
-        self.strides = strides_
+
+        self.strides = {}
+        for factor in self.scope:
+            if factor == self.scope[0]:
+                self.strides[factor] = 1 # First stride is always 1
+            else:
+                self.strides[factor] = calc_stride(self.scope, factor)
+
+        for num in range(len(var_ranges)):
+            if num not in self.scope:
+                self.strides[num] = 0
 
 
     def __mul__(self, other):
@@ -95,22 +105,10 @@ class Factor(dict):
                     k = k + other.strides[l]
                     break
 
-        factor_strides = {}
-        for factor in unioned_scopes:
-            if factor == unioned_scopes[0]:
-                factor_strides[factor] = 1 # First stride is always 1
-            else:
-                factor_strides[factor] = calc_stride(unioned_scopes, factor)
-
-        for num in range(len(var_ranges)):
-            if num not in unioned_scopes:
-                factor_strides[num] = 0
-
-        var_logging(factor_strides)
 
         var_logging("Unioned Scopes: " + str(unioned_scopes))
 #        return Factor(new_scope, new_vals, new_strides)
-        return Factor(unioned_scopes, psi, factor_strides)
+        return Factor(unioned_scopes, psi)
 
     def __rmul__(self, other):
         return self * other
@@ -209,23 +207,8 @@ def read_model():
         scope.reverse()
         factor_scopes.append(scope)
 
-    stride_list = []
+
     var_logging("Factor scopes: " + str(factor_scopes))
-
-    for index in range(len(factor_scopes)):
-        factor_strides = {}
-        for factor in factor_scopes[index]:
-            if factor == factor_scopes[0]:
-                factor_strides[factor] = 1 # First stride is always 1
-            else:
-                factor_strides[factor] = calc_stride(factor_scopes[index], factor)
-
-        for num in range(num_factors):
-            if num not in factor_scopes[index]:
-                factor_strides[num] = 0
-        stride_list.append(factor_strides)
-
-    var_logging(stride_list)
 
     var_logging("Factor strides calculated")
 
@@ -245,11 +228,12 @@ def read_model():
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
     var_logging("File read!")
-    var_logging("ZIP:" + str(zip(factor_scopes,factor_vals, stride_list)))
-    factor_list = [Factor(s,v, stride) for (s,v, stride) in zip(factor_scopes,factor_vals, stride_list)] # We return a list of factors
+    var_logging("ZIP:" + str(zip(factor_scopes,factor_vals)))
+    factor_list = [Factor(s,v) for (s,v) in zip(factor_scopes,factor_vals)] # We return a list of factors
 
     for factor in factor_list:
         var_logging("Factor: " + str(factor))
+
     return factor_list # We return a list of factors
 
 
