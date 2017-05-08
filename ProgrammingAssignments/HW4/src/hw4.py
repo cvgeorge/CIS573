@@ -16,8 +16,8 @@ import itertools
 # ranges directly without reading in a full model file, so please keep it
 # here and use it when you need variable ranges!
 #var_ranges = []  UNCOMMENT THIS WHEN DONE DEBUGGING
-var_ranges = [2, 2, 2, 2]
-var_log = True
+var_ranges = [2, 2, 2, 2, 2]
+var_log = False
 
 
 #
@@ -78,7 +78,7 @@ class Factor(dict):
         psi = []
         var_logging("NumVals: " + str(numVals))
 
-        for i in range(numVals - 1):
+        for i in range(numVals):
 
             var_logging("j: " + str(j))
             var_logging("k: " + str(k))
@@ -96,23 +96,21 @@ class Factor(dict):
                     k = k - (var_ranges[l] - 1) * other.strides[l]
                 else:
                     var_logging("entered else statement")
+                    var_logging("L: " + str(l))
                     j = j + self.strides[l]
                     k = k + other.strides[l]
                     break
 
-        print "Psi: " + str(psi)
-
-
-
-        factor_strides = []
-        for factor_index in range(len(unioned_scopes)):
-            if factor_index == 0:
-                factor_strides.append(1)  # First stride is always 1
+        factor_strides = {}
+        for factor in unioned_scopes:
+            if factor == unioned_scopes[0]:
+                factor_strides[factor] = 1 # First stride is always 1
             else:
-                prod = 1
-                for i in range(0, factor_index):
-                    prod *= var_ranges[unioned_scopes[i]]
-                factor_strides.append(prod)
+                factor_strides[factor] = calc_stride(unioned_scopes, factor)
+
+        for num in range(len(var_ranges)):
+            if num not in unioned_scopes:
+                factor_strides[num] = 0
 
 
         var_logging(factor_strides)
@@ -195,6 +193,17 @@ def next_float():
 #
 #
 
+def calc_stride(factor_scope, target):
+    prod = 1
+
+    if target not in factor_scope:
+        raise Exception("Error! The variable " + str(target) + " was no in the scope!")
+
+    for variable in factor_scope:
+        if variable == target:
+            return prod
+        prod *= var_ranges[variable]
+
 
 
 def read_model():
@@ -227,20 +236,22 @@ def read_model():
         factor_scopes.append(scope)
 
     stride_list = []
-    print "Factor scopes: " + str(factor_scopes)
+    var_logging("Factor scopes: " + str(factor_scopes))
+
     for index in range(len(factor_scopes)):
-        factor_strides = []
-        for factor_index in range(len(factor_scopes[index])):
-            if factor_index == 0:
-                factor_strides.append(1) # First stride is always 1
+        factor_strides = {}
+        for factor in factor_scopes[index]:
+            if factor == factor_scopes[0]:
+                factor_strides[factor] = 1 # First stride is always 1
             else:
-                prod = 1
-                for i in range(0, factor_index):
-                    prod *= var_ranges[factor_scopes[index][i]]
-                factor_strides.append(prod)
+                factor_strides[factor] = calc_stride(factor_scopes[index], factor)
+
+        for num in range(num_factors):
+            if num not in factor_scopes[index]:
+                factor_strides[num] = 0
         stride_list.append(factor_strides)
 
-    print stride_list
+    var_logging(stride_list)
 
     var_logging("Factor strides calculated")
 
@@ -256,15 +267,15 @@ def read_model():
 
     # DEBUG
     #print "Num vars: ",num_vars
-    print "Ranges: ",var_ranges
+    #print "Ranges: ",var_ranges
     #print "Scopes: ",factor_scopes
     #print "Values: ",factor_vals
     var_logging("File read!")
-    print "ZIP:" + str(zip(factor_scopes,factor_vals, stride_list))
+    var_logging("ZIP:" + str(zip(factor_scopes,factor_vals, stride_list)))
     factor_list = [Factor(s,v, stride) for (s,v, stride) in zip(factor_scopes,factor_vals, stride_list)] # We return a list of factors
 
     for factor in factor_list:
-        print "Factor: " + str(factor)
+        var_logging("Factor: " + str(factor))
     return factor_list # We return a list of factors
 
 
@@ -275,17 +286,40 @@ def read_model():
 if __name__ == "__main__":
     var_logging("Beginning program")
     #factors = read_model()             #IMPORTANT! UNCOMMENT THIS WHEN DONE DEBUGGING
+    '''
+    # T1 Network
 
-    f1 = Factor([0], [1.5, 1.5], [1])
-    f2 = Factor([1, 2], [0.3, 0.7, 2.9, 0.1], [1,2])
-    f3 = Factor([2, 0], [2.8, 1.2, 0.2, 2.8], [1,2])
-    f4 = Factor([3, 2], [1.5, 2.5, 1.1, 0.9], [1,2])
+    f1_strides = {0: 1, 1: 0, 2: 0, 3: 0}
+    f2_strides = {0: 0, 1: 1, 2: 2, 3: 0}
+    f3_strides = {0: 2, 1: 0, 2: 1, 3: 0}
+    f4_strides = {0: 0, 1: 0, 2: 2, 3: 1}
+
+    f1 = Factor([0], [1.5, 1.5], f1_strides)
+    f2 = Factor([1, 2], [0.3, 0.7, 2.9, 0.1], f2_strides)
+    f3 = Factor([2, 0], [2.8, 1.2, 0.2, 2.8], f3_strides)
+    f4 = Factor([3, 2], [1.5, 2.5, 1.1, 0.9], f4_strides)
 
     factors = [f1, f2, f3, f4]
+    '''
 
-    for factor in factors:
-        print "Factor: " + str(factor)
-    print(len(factors))
+
+
+    # T2 Network
+
+    f1_strides = {0: 1, 1: 0, 2: 2, 3: 0, 4: 0}
+    f2_strides = {0: 0, 1: 1, 2: 0, 3: 0, 4: 0}
+    f3_strides = {0: 0, 1: 0, 2: 1, 3: 0, 4: 0}
+    f4_strides = {0: 0, 1: 2, 2: 4, 3: 1, 4: 0}
+    f5_strides = {0: 4, 1: 0, 2: 0, 3: 2, 4: 1}
+
+    f1 = Factor([0, 2], [0.05000000, 0.95000000, 1.50000000, 0.50000000], f1_strides)
+    f2 = Factor([1], [0.70000000, 2.30000000], f2_strides)
+    f3 = Factor([2], [1.10000000, 0.90000000], f3_strides)
+    f4 = Factor([3, 1, 2], [0.01000000, 0.99000000, 2.25000000, 3.75000000, 0.50000000, 0.50000000, 0.60000000, 0.40000000], f4_strides)
+    f5 = Factor([4, 3, 0], [0.01000000, 4.99000000, 0.10000000, 1.90000000, 0.20000000, 0.80000000, 0.50000000, 0.50000000], f5_strides)
+
+    factors = [f1, f2, f3, f4, f5]
+
 
 
     # Compute Z by brute force
